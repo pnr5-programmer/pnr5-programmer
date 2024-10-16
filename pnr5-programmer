@@ -1,0 +1,89 @@
+
+const { Client, GatewayIntentBits } = require('discord.js');
+const client = new Client({
+intents: [
+GatewayIntentBits.Guilds,
+GatewayIntentBits.GuildMessages,
+GatewayIntentBits.MessageContent
+]
+});
+
+const prefix = '!';
+
+client.once('ready', () => {
+console.log('Ready!');
+});
+
+client.on('messageCreate', message => {
+if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+const args = message.content.slice(prefix.length).trim().split(/ +/);
+const command = args.shift().toLowerCase();
+
+if (command === 'help') {
+message.channel.send(`
+**Commands:**
+\`${prefix}straightline <cost> <disposal_value> <years>\` - Calculate depreciation using the straight-line method.
+\`${prefix}reducingbalance <cost> <rate>\` - Calculate depreciation using the reducing balance method.
+\`${prefix}help\` - Show this help message.
+`);
+} else if (command === 'straightline') {
+if (args.length !== 3) {
+return message.reply('Usage: !straightline <cost> <disposal_value> <years>');
+}
+
+const cost = parseFloat(args[0]);
+const disposal_value = parseFloat(args[1]);
+const years = parseFloat(args[2]);
+
+if (isNaN(cost) || isNaN(disposal_value) || isNaN(years)) {
+return message.reply('Please enter valid numbers for all values.');
+}
+
+const annual_depreciation = (cost - disposal_value) / years;
+
+let value = cost;
+let response = `**Straight-line Method Depreciation**
+Cost: $${cost}
+Annual Depreciation: $${annual_depreciation.toFixed(2)}
+`;
+
+for (let year = 1; year <= years; year++) {
+value -= annual_depreciation;
+response += `Depreciation in year ${year}: $${annual_depreciation.toFixed(2)}, Value after year ${year}: $${value.toFixed(2)}
+`;
+}
+
+response += `Disposal Value: $${disposal_value.toFixed(2)}`;
+message.channel.send(response);
+
+} else if (command === 'reducingbalance') {
+if (args.length !== 2) {
+return message.reply('Usage: !reducingbalance <cost> <rate>');
+}
+
+const cost = parseFloat(args[0]);
+const rate = parseFloat(args[1]) / 100;
+
+if (isNaN(cost) || isNaN(rate)) {
+
+  return message.reply('Please enter valid numbers for all values.');
+  }
+
+  let value = cost;
+  let response = `**Reducing Balance Method Depreciation**
+  Cost: $${cost.toFixed(2)}
+  `;
+
+  for (let year = 1; year <= 4; year++) {
+  const depreciation = value * rate;
+  value -= depreciation;
+  response += `Depreciation in year ${year}: $${depreciation.toFixed(2)}, Value after year ${year}: $${value.toFixed(2)}
+  `;
+  }
+
+  message.channel.send(response);
+  }
+  });
+  client.login('') 
+
